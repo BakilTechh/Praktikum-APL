@@ -46,7 +46,7 @@ int tampilkanTierlist() {
              << "| " << tierlist[i].tier
              << "    | " << tierlist[i].stat.role
              << string(11 - tierlist[i].stat.role.size(), ' ')
-             << "| " << tierlist[i].stat.pickrate << "%" 
+             << "| " << tierlist[i].stat.pickrate << "%"
              << string(8 - to_string(tierlist[i].stat.pickrate).size(), ' ')
              << "|" << endl;
     }
@@ -101,23 +101,23 @@ int menuAdmin() {
 
         case 3:
             if (jumlahAgent > 0) {
-                int index;
+                int nomorAgent;
                 cout << "Nomor agent yang diubah: ";
-                cin >> index;
+                cin >> nomorAgent;
 
-                if (index > 0 && index <= jumlahAgent) {
+                if (nomorAgent > 0 && nomorAgent <= jumlahAgent) {
                     cout << "Nama baru: ";
                     cin.ignore();
-                    getline(cin, tierlist[index - 1].nama);
+                    getline(cin, tierlist[nomorAgent - 1].nama);
 
                     cout << "Tier baru: ";
-                    getline(cin, tierlist[index - 1].tier);
+                    getline(cin, tierlist[nomorAgent - 1].tier);
 
                     cout << "Role baru: ";
-                    getline(cin, tierlist[index - 1].stat.role);
+                    getline(cin, tierlist[nomorAgent - 1].stat.role);
 
                     cout << "Pickrate baru: ";
-                    cin >> tierlist[index - 1].stat.pickrate;
+                    cin >> tierlist[nomorAgent - 1].stat.pickrate;
 
                     cout << "Update berhasil.\n";
                 } else {
@@ -130,12 +130,12 @@ int menuAdmin() {
 
         case 4:
             if (jumlahAgent > 0) {
-                int index;
+                int nomorAgent;
                 cout << "Nomor agent yang dihapus: ";
-                cin >> index;
+                cin >> nomorAgent;
 
-                if (index > 0 && index <= jumlahAgent) {
-                    for (int i = index - 1; i < jumlahAgent - 1; i++) {
+                if (nomorAgent > 0 && nomorAgent <= jumlahAgent) {
+                    for (int i = nomorAgent - 1; i < jumlahAgent - 1; i++) {
                         tierlist[i] = tierlist[i + 1];
                     }
                     jumlahAgent--;
@@ -211,7 +211,7 @@ string login() {
         attempt++;
         cout << "Login gagal (" << attempt << "/3)\n";
     }
-    return "gagal";
+    return "gagal,coba lagi nanti";
 }
 
 int main() {
