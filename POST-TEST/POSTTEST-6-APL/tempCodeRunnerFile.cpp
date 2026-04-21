@@ -19,7 +19,7 @@ struct Agent {
 struct User {
     string username;
     string password;
-    string role; // Admin atau User
+    string role;
 };
 
 // ===== SUB PROGRAM =====
@@ -53,7 +53,6 @@ void tampilkanTierlistRekursif(Agent tierlist[], int i, int jumlahAgent) {
     tampilkanTierlistRekursif(tierlist, i+1, jumlahAgent);
 }
 
-// Fungsi: tambah agent 
 void tambahAgent(Agent tierlist[], int *jumlahAgent) {
     if (*jumlahAgent < MAX_AGENT) {
         cout << "Nama Agent: ";
@@ -104,7 +103,6 @@ void prosesUpdateData(Agent *ptrAgent) {
     }
 }
 
-// Fungsi: ubah agent
 void ubahAgent(Agent tierlist[], int jumlahAgent) {
     if (jumlahAgent > 0) {
         int nomorAgent;
@@ -129,7 +127,6 @@ void ubahAgent(Agent tierlist[], int jumlahAgent) {
     }
 }
 
-// Fungsi: hapus agent 
 void hapusAgent(Agent tierlist[], int *jumlahAgent) {
     if (*jumlahAgent > 0) {
         int nomorAgent;
@@ -150,7 +147,6 @@ void hapusAgent(Agent tierlist[], int *jumlahAgent) {
     }
 }
 
-// Fungsi Overloading: cari agent
 void cariAgent(string nama, Agent tierlist[], int jumlahAgent) {
     for (int i = 0; i < jumlahAgent; i++) {
         if (tierlist[i].nama == nama) {
@@ -165,7 +161,6 @@ void cariAgent(string nama, Agent tierlist[], int jumlahAgent) {
     cout << "Agent " << nama << " tidak ditemukan.\n";
 }
 
-// Cari agent berdasarkan tier
 void cariAgentTier(string tier, Agent tierlist[], int jumlahAgent) {
     bool ditemukan = false;
     for (int i = 0; i < jumlahAgent; i++) {
@@ -183,6 +178,206 @@ void cariAgentTier(string tier, Agent tierlist[], int jumlahAgent) {
     }
 }
 
+// Fungsi pembantu untuk Selection Sort: mengubah tier huruf ke angka
+int nilaiTier(string tier) {
+    if (tier == "S") return 5;
+    if (tier == "A") return 4;
+    if (tier == "B") return 3;
+    if (tier == "C") return 2;
+    if (tier == "D") return 1;
+    return 0;
+}
+
+// 1. Selection Sort - Tier Descending (S -> A -> B -> C -> D)
+void sortTierDescending(Agent tierlist[], int jumlahAgent) {
+    for (int i = 0; i < jumlahAgent - 1; i++) {
+        int indeksMax = i;
+        for (int j = i + 1; j < jumlahAgent; j++) {
+            if (nilaiTier(tierlist[j].tier) > nilaiTier(tierlist[indeksMax].tier)) {
+                indeksMax = j;
+            }
+        }
+        if (indeksMax != i) {
+            Agent temp = tierlist[i];
+            tierlist[i] = tierlist[indeksMax];
+            tierlist[indeksMax] = temp;
+        }
+    }
+    cout << "Data berhasil diurutkan berdasarkan Tier (S -> D).\n";
+}
+
+// 2. Bubble Sort - Pickrate Ascending (kecil -> besar)
+void sortPickrateAscending(Agent tierlist[], int jumlahAgent) {
+    bool swapped;
+    for (int i = 0; i < jumlahAgent - 1; i++) {
+        swapped = false;
+        for (int j = 0; j < jumlahAgent - i - 1; j++) {
+            if (tierlist[j].stat.pickrate > tierlist[j + 1].stat.pickrate) {
+                Agent temp = tierlist[j];
+                tierlist[j] = tierlist[j + 1];
+                tierlist[j + 1] = temp;
+                swapped = true;
+            }
+        }
+        if (swapped == false)
+            break;
+    }
+    cout << "Data berhasil diurutkan berdasarkan Pickrate (rendah -> tinggi).\n";
+}
+
+// 3. Insertion Sort - Nama Ascending (A -> Z)
+void sortNamaAscending(Agent tierlist[], int jumlahAgent) {
+    for (int i = 1; i < jumlahAgent; i++) {
+        Agent key = tierlist[i];
+        int j = i - 1;
+        while (j >= 0 && tierlist[j].nama > key.nama) {
+            tierlist[j + 1] = tierlist[j];
+            j = j - 1;
+        }
+        tierlist[j + 1] = key;
+    }
+    cout << "Data berhasil diurutkan berdasarkan Nama (A -> Z).\n";
+}
+
+// ===== SEARCHING =====
+
+// 1. Binary Search - cari berdasarkan PICKRATE (angka)
+void binarySearchPickrate(Agent *tierlist, int jumlahAgent, int targetPickrate) {
+    bool swapped;
+    for (int i = 0; i < jumlahAgent - 1; i++) {
+        swapped = false;
+        for (int j = 0; j < jumlahAgent - i - 1; j++) {
+            if ((tierlist + j)->stat.pickrate > (tierlist + j + 1)->stat.pickrate) {
+                Agent temp = *(tierlist + j);
+                *(tierlist + j) = *(tierlist + j + 1);
+                *(tierlist + j + 1) = temp;
+                swapped = true;
+            }
+        }
+        if (swapped == false) break;
+    }
+
+    // Proses Binary Search
+    int kiri = 0;
+    int kanan = jumlahAgent - 1;
+    bool ditemukan = false;
+
+    while (kiri <= kanan) {
+        int tengah = (kiri + kanan) / 2;
+
+        if ((tierlist + tengah)->stat.pickrate == targetPickrate) {
+            int awal = tengah;
+            while (awal > 0 && (tierlist + awal - 1)->stat.pickrate == targetPickrate) {
+                awal--;
+            }
+            cout << "\n=== HASIL BINARY SEARCH (Pickrate: " << targetPickrate << "%) ===" << endl;
+            for (int i = awal; i < jumlahAgent && (tierlist + i)->stat.pickrate == targetPickrate; i++) {
+                cout << "Nama     : " << (tierlist + i)->nama << endl;
+                cout << "Tier     : " << (tierlist + i)->tier << endl;
+                cout << "Role     : " << (tierlist + i)->stat.role << endl;
+                cout << "Pickrate : " << (tierlist + i)->stat.pickrate << "%" << endl;
+                cout << "---" << endl;
+            }
+            ditemukan = true;
+            break;
+        } else if ((tierlist + tengah)->stat.pickrate < targetPickrate) {
+            kiri = tengah + 1;
+        } else {
+            kanan = tengah - 1;
+        }
+    }
+
+    if (!ditemukan) {
+        cout << "Agent dengan pickrate " << targetPickrate << "% tidak ditemukan.\n";
+    }
+}
+
+// 2. Linear Search - cari berdasarkan ROLE/KATEGORI (kata)
+void linearSearchRole(Agent *tierlist, int jumlahAgent, string targetRole) {
+    bool ditemukan = false;
+    cout << "\n=== HASIL LINEAR SEARCH (Role: " << targetRole << ") ===" << endl;
+
+    for (int i = 0; i < jumlahAgent; i++) {
+        if ((tierlist + i)->stat.role == targetRole) {
+            cout << "Nama     : " << (tierlist + i)->nama << endl;
+            cout << "Tier     : " << (tierlist + i)->tier << endl;
+            cout << "Role     : " << (tierlist + i)->stat.role << endl;
+            cout << "Pickrate : " << (tierlist + i)->stat.pickrate << "%" << endl;
+            cout << "---" << endl;
+            ditemukan = true;
+        }
+    }
+
+    if (!ditemukan) {
+        cout << "Agent dengan role \"" << targetRole << "\" tidak ditemukan.\n";
+    }
+}
+
+// Sub-menu searching baru
+void menuSearching(Agent tierlist[], int jumlahAgent) {
+    if (jumlahAgent == 0) {
+        cout << "Belum ada agent untuk dicari.\n";
+        return;
+    }
+
+    int pilihan;
+    cout << "\n+------------------------------------+" << endl;
+    cout << "|          SEARCHING AGENT           |" << endl;
+    cout << "+------------------------------------+" << endl;
+    cout << "| 1. Binary Search (cari Pickrate)   |" << endl;
+    cout << "| 2. Linear Search (cari Role)       |" << endl;
+    cout << "+------------------------------------+" << endl;
+    cout << "Pilihan: ";
+    cin >> pilihan;
+
+    if (pilihan == 1) {
+        int targetPickrate;
+        cout << "Masukkan pickrate yang dicari (%): ";
+        cin >> targetPickrate;
+        if (cin.fail() || targetPickrate < 0 || targetPickrate > 100) {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            cout << "Pickrate harus angka antara 0 - 100.\n";
+            return;
+        }
+        binarySearchPickrate(tierlist, jumlahAgent, targetPickrate);
+    } else if (pilihan == 2) {
+        string targetRole;
+        cout << "Masukkan role yang dicari: ";
+        cin.ignore();
+        getline(cin, targetRole);
+        linearSearchRole(tierlist, jumlahAgent, targetRole);
+    } else {
+        cout << "Pilihan tidak valid.\n";
+    }
+}
+
+// Sub-menu sorting
+void menuSorting(Agent tierlist[], int jumlahAgent) {
+    if (jumlahAgent == 0) {
+        cout << "Belum ada agent untuk diurutkan.\n";
+        return;
+    }
+
+    int pilihan;
+    cout << "\n+------------------------------+" << endl;
+    cout << "|         SORTING AGENT        |" << endl;
+    cout << "+------------------------------+" << endl;
+    cout << "| 1. Sort Tier (S -> D)        |" << endl;
+    cout << "| 2. Sort Pickrate (kecil->bsr)|" << endl;
+    cout << "| 3. Sort Nama (A -> Z)        |" << endl;
+    cout << "+------------------------------+" << endl;
+    cout << "Pilihan: ";
+    cin >> pilihan;
+
+    switch (pilihan) {
+        case 1: sortTierDescending(tierlist, jumlahAgent);  break;
+        case 2: sortPickrateAscending(tierlist, jumlahAgent); break;
+        case 3: sortNamaAscending(tierlist, jumlahAgent);   break;
+        default: cout << "Pilihan tidak valid.\n";
+    }
+}
+
 // ===== MENU ADMIN =====
 int menuAdmin(Agent tierlist[], int *jumlahAgent) {
     int pilihan;
@@ -192,8 +387,10 @@ int menuAdmin(Agent tierlist[], int *jumlahAgent) {
         cout << "| 2. Tambah Agent                           |" << endl;
         cout << "| 3. Ubah Agent                             |" << endl;
         cout << "| 4. Hapus Agent                            |" << endl;
-        cout << "| 5. Cari Agent                             |" << endl;
-        cout << "| 6. Keluar                                 |" << endl;
+        cout << "| 5. Sorting Agent                          |" << endl;
+        cout << "| 6. Searching Agent                        |" << endl;
+        cout << "| 7. Cari Agent                             |" << endl;
+        cout << "| 8. Keluar                                 |" << endl; 
         cout << "+===========================================+" << endl;
         cout << "Pilihan: ";
         cin >> pilihan;
@@ -203,7 +400,9 @@ int menuAdmin(Agent tierlist[], int *jumlahAgent) {
         case 2: tambahAgent(tierlist, jumlahAgent); break;
         case 3: ubahAgent(tierlist, *jumlahAgent); break;
         case 4: hapusAgent(tierlist, jumlahAgent); break;
-        case 5: {
+        case 5: menuSorting(tierlist, *jumlahAgent); break;
+        case 6: menuSearching(tierlist, *jumlahAgent); break; 
+        case 7: { 
             int subPilihan;
             cout << "\n+---------------------------+" << endl;
             cout << "|        CARI AGENT         |" << endl;
@@ -230,10 +429,10 @@ int menuAdmin(Agent tierlist[], int *jumlahAgent) {
             }
             break;
         }
-        case 6: cout << "Keluar dari menu Admin.\n"; break;
+        case 8: cout << "Keluar dari menu Admin.\n"; break;
         default: cout << "Pilihan tidak valid.\n";
         }
-    } while (pilihan != 6);
+    } while (pilihan != 8);
     return 0;
 }
 
@@ -244,7 +443,9 @@ bool menuUser(Agent tierlist[], int jumlahAgent) {
         cout << "\n+================ MENU USER ================+" << endl;
         cout << "| 1. Lihat Tierlist                         |" << endl;
         cout << "| 2. Cari Agent                             |" << endl;
-        cout << "| 3. Keluar                                 |" << endl;
+        cout << "| 3. Sorting Agent                          |" << endl;
+        cout << "| 4. Searching Agent                        |" << endl;
+        cout << "| 5. Keluar                                 |" << endl;
         cout << "+===========================================+" << endl;
         cout << "Pilihan: ";
         cin >> pilihan;
@@ -280,19 +481,20 @@ bool menuUser(Agent tierlist[], int jumlahAgent) {
             }
             break;
         }
-        case 3:
+        case 3: menuSorting(tierlist, jumlahAgent); break;
+        case 4: menuSearching(tierlist, jumlahAgent); break;
+        case 5:
             cout << "Keluar dari menu User.\n";
             break;
         default:
             cout << "Pilihan tidak valid.\n";
         }
-    } while (pilihan != 3);
+    } while (pilihan != 5);
 
     return true;
 }
 
 // ===== LOGIN =====
-// pada menu login jika salah 3 kali akan keluar program
 int login(User users[], int jumlahUser) {
     string username, password;
     int attempt = 0;
@@ -309,7 +511,7 @@ int login(User users[], int jumlahUser) {
         for (int i = 0; i < jumlahUser; i++) {
             if (users[i].username == username && users[i].password == password) {
                 cout << "Login berhasil, Selamat datang, " << username << " (" << users[i].role << ")\n";
-                return i; 
+                return i;
             }
         }
 
@@ -318,7 +520,7 @@ int login(User users[], int jumlahUser) {
     }
 
     cout << "Login gagal 3 kali. kembali ke menu utama.\n";
-    return -1; 
+    return -1;
 }
 
 // ===== MAIN =====
@@ -326,17 +528,17 @@ int main() {
     Agent tierlist[MAX_AGENT];
     int jumlahAgent = 0;
 
-    // Data user default
     User users[MAX_USER];
     int jumlahUser = 2;
 
     users[0] = {"Bakil", "044", "Admin"};
     users[1] = {"User", "123", "User"};
 
-    // 3 agent sementara di list
     tierlist[jumlahAgent++] = {"Reyna", "A", {"Duelist", 60}};
     tierlist[jumlahAgent++] = {"Jett",  "S", {"Duelist", 85}};
     tierlist[jumlahAgent++] = {"Iso",   "B", {"Duelist", 40}};
+    tierlist[jumlahAgent++] = {"Sage",   "B", {"Sentinel", 67}};
+    tierlist[jumlahAgent++] = {"Kay-O",   "A", {"Initiator", 45}};
 
     int pilihanUtama;
     do {
@@ -353,7 +555,6 @@ int main() {
             int idxUser = login(users, jumlahUser);
             if (idxUser != -1) {
                 if (users[idxUser].role == "Admin") {
-                    // Menggunakan Address-of Operator (&) untuk mengirim alamat variabel
                     menuAdmin(tierlist, &jumlahAgent);
                 } else {
                     menuUser(tierlist, jumlahAgent);
@@ -368,4 +569,3 @@ int main() {
 
     return 0;
 }
-
